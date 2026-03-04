@@ -91,5 +91,9 @@ export default defineConfig({
       dark: 'github-dark'
     },
     lineNumbers: false
+  },
+  
+  build: {
+    outDir: '.vitepress/dist'
   }
 })
