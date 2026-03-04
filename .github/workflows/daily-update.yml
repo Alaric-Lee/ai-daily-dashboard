@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # 允许手动触发
   push:
     branches:
-      - main  # 推送到main分支时也触发
+      - gh-pages  # 推送到main分支时也触发
 
 jobs:
   update-dashboard:
