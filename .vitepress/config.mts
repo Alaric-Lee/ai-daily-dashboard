@@ -4,7 +4,7 @@ export default defineConfig({
   title: "AI Daily",
   description: "每日更新的AI资讯仪表盘",
   base: '/ai-daily-dashboard/',
-  srcDir: './docs',
+  srcDir: 'docs',
   lang: 'zh-CN',
   
   head: [
