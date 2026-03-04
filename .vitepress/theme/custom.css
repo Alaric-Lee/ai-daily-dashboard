@@ -1,0 +1,321 @@
+/* 自定义主题样式 */
+
+:root {
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --accent-color: #ec4899;
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* 首页Hero区域 */
+.VPHero {
+  background: var(--bg-gradient);
+  padding: 4rem 2rem !important;
+}
+
+.VPHero .name {
+  background: linear-gradient(120deg, #fff 0%, #e0e7ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.VPHero .text {
+  color: #fff !important;
+}
+
+.VPHero .tagline {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.VPHero .image-bg {
+  opacity: 0.1;
+}
+
+/* 特色卡片 */
+.VPFeature {
+  border-radius: 12px !important;
+  border: 1px solid rgba(99, 102, 241, 0.1) !important;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+}
+
+.VPFeature:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--primary-color) !important;
+}
+
+.VPFeature .title {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.VPFeature .details {
+  color: #64748b;
+}
+
+/* 内容区域 */
+.vp-doc {
+  max-width: 1200px !important;
+}
+
+/* 标题样式 */
+.vp-doc h2 {
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+}
+
+.vp-doc h3 {
+  color: #1e293b;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+  border-left: 4px solid var(--primary-color);
+}
+
+/* 卡片容器 */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--primary-color);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+}
+
+.card-content {
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* 链接样式 */
+.vp-doc a {
+  color: var(--primary-color);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.vp-doc a:hover {
+  border-bottom-color: var(--primary-color);
+}
+
+/* 列表样式 */
+.vp-doc ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.vp-doc ul li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.vp-doc ul li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+/* 引用块样式 */
+.vp-doc blockquote {
+  border-left: 4px solid var(--primary-color);
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0 8px 8px 0;
+}
+
+/* iframe容器 */
+iframe {
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+}
+
+iframe:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* 表格样式 */
+.vp-doc table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 2rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+.vp-doc th {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  text-align: left;
+  padding: 1rem;
+}
+
+.vp-doc td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.vp-doc tr:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* 导航栏 */
+.VPNav {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.VPNavBarTitle .title {
+  color: var(--primary-color) !important;
+  font-weight: 700;
+}
+
+.VPNavBarMenuLink:hover,
+.VPNavBarMenuGroup:hover .text {
+  color: var(--primary-color) !important;
+}
+
+/* 侧边栏 */
+.VPSidebar {
+  border-right: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.VPSidebarItem .text {
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.VPSidebarItem.is-active .text {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.VPSidebarItem:hover .text {
+  color: var(--primary-color);
+}
+
+/* 按钮样式 */
+.VPButton.brand {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.VPButton.brand:hover {
+  background: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+
+/* 页脚 */
+.VPFooter {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+/* 深色模式适配 */
+.dark {
+  --primary-color: #818cf8;
+  --primary-hover: #6366f1;
+}
+
+.dark .VPFeature {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.7) 100%);
+  border-color: rgba(129, 140, 248, 0.2) !important;
+}
+
+.dark .card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark .vp-doc h2 {
+  color: var(--primary-color);
+}
+
+.dark .vp-doc h3 {
+  color: #e2e8f0;
+}
+
+.dark .vp-doc th {
+  background: var(--primary-color);
+}
+
+.dark .vp-doc td {
+  border-color: #334155;
+}
+
+.dark .vp-doc tr:hover {
+  background: rgba(129, 140, 248, 0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .VPHero {
+    padding: 2rem 1rem !important;
+  }
+  
+  .card-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .vp-doc {
+    padding: 1rem;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vp-doc > * {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.vp-doc > *:nth-child(1) { animation-delay: 0.1s; }
+.vp-doc > *:nth-child(2) { animation-delay: 0.2s; }
+.vp-doc > *:nth-child(3) { animation-delay: 0.3s; }
+.vp-doc > *:nth-child(4) { animation-delay: 0.4s; }
+.vp-doc > *:nth-child(5) { animation-delay: 0.5s; }

@@ -1,0 +1,30 @@
+{
+  "name": "ai-daily-dashboard",
+  "version": "1.0.0",
+  "description": "- [2026-03-04](output/2026-03-04.md)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alaric-Lee/ai-daily-dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Alaric-Lee/ai-daily-dashboard/issues"
+  },
+  "homepage": "https://github.com/Alaric-Lee/ai-daily-dashboard#readme",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
