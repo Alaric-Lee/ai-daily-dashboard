@@ -6,11 +6,13 @@ on:
   workflow_dispatch:  # 允许手动触发
   push:
     branches:
-      - gh-pages  # 推送到main分支时也触发
+      - main  # 推送到main分支时也触发
 
 jobs:
   update-dashboard:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     permissions:
       contents: write
       pages: write
@@ -59,5 +61,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          branch: gh-pages  # 部署到gh-pages分支
