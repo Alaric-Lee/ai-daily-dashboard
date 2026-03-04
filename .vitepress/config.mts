@@ -40,7 +40,7 @@ export default defineConfig({
             { text: '🏆 大模型评测榜单', link: '/2026-03-04#大模型综合评测榜单' },
             { text: '📰 最新资讯', link: '/2026-03-04#最新大模型相关资讯' },
             { text: '🔥 开源项目', link: '/2026-03-04#开源社区热门ai应用' },
-            { text: '💡 成功案例', link: '/2026-03-04#ai应用最成功方案' }
+            { text: '💡 成功案例', link: '/2026-03-04#ai创新' }
           ]
         }
       ]
@@ -91,9 +91,5 @@ export default defineConfig({
       dark: 'github-dark'
     },
     lineNumbers: false
-  },
-  
-  build: {
-    outDir: '.vitepress/dist'
   }
 })
