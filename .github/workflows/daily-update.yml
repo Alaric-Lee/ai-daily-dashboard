@@ -66,10 +66,10 @@ jobs:
             if [ "${{ github.event.inputs.force }}" == "true" ]; then
               FORCE="--force"
             fi
-            python run_script.py --mode $MODE $FORCE
+            python scripts/main.py --mode $MODE $FORCE
           else
             # 自动触发时运行全部任务
-            python run_script.py --mode all
+            python scripts/main.py --mode all
           fi
       
       - name: Set up Node.js
