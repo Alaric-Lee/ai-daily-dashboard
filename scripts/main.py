@@ -6,8 +6,12 @@ import sys
 import argparse
 from datetime import datetime, timedelta
 
+# 获取脚本目录和项目根目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+
 # 添加脚本目录到路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, script_dir)
 
 from data_storage import DataStorage
 from scoring import NewsScorer
