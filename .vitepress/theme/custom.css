@@ -201,6 +201,18 @@ iframe:hover {
   border-bottom: 1px solid rgba(99, 102, 241, 0.1);
 }
 
+.dark .VPNav {
+  background: #020617 !important; /* 顶部导航深色背景 */
+  border-bottom-color: rgba(15, 23, 42, 0.8);
+}
+
+/* 顶部中间过渡区域（导航内部容器） */
+.dark .VPNavBar,
+.dark .VPNavBar .container,
+.dark .VPLocalNav {
+  background: #020617 !important;
+}
+
 .VPNavBarTitle .title {
   color: var(--primary-color) !important;
   font-weight: 700;
@@ -214,6 +226,21 @@ iframe:hover {
 /* 侧边栏 */
 .VPSidebar {
   border-right: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.dark .VPSidebar {
+  background: #020617; /* 与顶部导航统一的深色背景 */
+  border-right-color: rgba(15, 23, 42, 0.8);
+}
+
+/* 整体背景（解决右侧窄色块不一致问题） */
+.dark body {
+  background: #020617;
+}
+
+.dark .VPShell,
+.dark .VPContent {
+  background: #020617;
 }
 
 .VPSidebarItem .text {

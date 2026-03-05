@@ -2,6 +2,7 @@ import requests
 import json
 import feedparser
 import time
+import re
 from datetime import datetime, timedelta
 import hashlib
 from collections import Counter
@@ -21,6 +22,19 @@ class AIInnovationCollector:
             'github_trending': 'https://api.github.com/search/repositories',
         }
         
+    def clean_html(self, text: str) -> str:
+        """移除HTML标签和常见转义符，防止Markdown中出现不完整的HTML片段"""
+        if not text:
+            return ""
+        # 去掉所有HTML标签
+        cleaned = re.sub(r"<[^>]+>", "", text)
+        # 处理常见HTML实体
+        cleaned = cleaned.replace("&nbsp;", " ")
+        cleaned = cleaned.replace("&amp;", "&")
+        cleaned = cleaned.replace("&lt;", "<")
+        cleaned = cleaned.replace("&gt;", ">")
+        return cleaned.strip()
+
     def fetch_arxiv_papers(self):
         """获取arXiv最新AI论文"""
         print("📚 正在获取arXiv论文...")
@@ -33,7 +47,9 @@ class AIInnovationCollector:
                 
                 for entry in feed.entries[:10]:
                     title = entry.title
-                    summary = entry.summary[:200] + "..."
+                    raw_summary = getattr(entry, "summary", "") or ""
+                    summary = self.clean_html(raw_summary)
+                    summary = (summary[:200] + "...") if len(summary) > 200 else summary
                     
                     # 提取创新点
                     innovation_score = self.calculate_innovation_score(title + " " + summary)
@@ -102,18 +118,25 @@ class AIInnovationCollector:
                         innovation_keywords = ['new', 'novel', 'breakthrough', 'SOTA', 'state-of-the-art', 
                                               'innovation', 'revolutionary', '前沿', '突破', '创新']
                         has_innovation = any(keyword in title.lower() for keyword in innovation_keywords)
-                        
+
                         if has_innovation or score > 100:
-                            innovations.append({
-                                'title': title,
-                                'source': f'Reddit r/{subreddit}',
-                                'type': '社区讨论',
-                                'summary': post_data.get('selftext', '')[:200],
-                                'url': f"https://reddit.com{post_data['permalink']}",
-                                'published': datetime.fromtimestamp(post_data['created_utc']).isoformat(),
-                                'innovation_score': score / 1000,
-                                'tags': ['社区热点', '创新讨论']
-                            })
+                            summary_raw = (post_data.get("selftext", "") or "")[:200]
+                            summary = self.clean_html(summary_raw)
+
+                            innovations.append(
+                                {
+                                    "title": title,
+                                    "source": f"Reddit r/{subreddit}",
+                                    "type": "社区讨论",
+                                    "summary": summary,
+                                    "url": f"https://reddit.com{post_data['permalink']}",
+                                    "published": datetime.fromtimestamp(
+                                        post_data["created_utc"]
+                                    ).isoformat(),
+                                    "innovation_score": score / 1000,
+                                    "tags": ["社区热点", "创新讨论"],
+                                }
+                            )
             except Exception as e:
                 print(f"Reddit {subreddit}获取失败: {e}")
         
@@ -131,17 +154,24 @@ class AIInnovationCollector:
                 
                 for entry in feed.entries[:5]:
                     title = entry.title
-                    
-                    innovations.append({
-                        'title': title,
-                        'source': 'TechCrunch',
-                        'type': '科技新闻',
-                        'summary': entry.get('summary', '')[:200],
-                        'url': entry.link,
-                        'published': entry.get('published', datetime.now().isoformat()),
-                        'innovation_score': 0.5,
-                        'tags': ['科技新闻', 'AI应用']
-                    })
+                    raw_summary = entry.get("summary", "") or ""
+                    summary = self.clean_html(raw_summary)
+                    summary = (summary[:200] + "...") if len(summary) > 200 else summary
+
+                    innovations.append(
+                        {
+                            "title": title,
+                            "source": "TechCrunch",
+                            "type": "科技新闻",
+                            "summary": summary,
+                            "url": entry.link,
+                            "published": entry.get(
+                                "published", datetime.now().isoformat()
+                            ),
+                            "innovation_score": 0.5,
+                            "tags": ["科技新闻", "AI应用"],
+                        }
+                    )
         except Exception as e:
             print(f"TechCrunch获取失败: {e}")
         
@@ -220,22 +250,38 @@ class AIInnovationCollector:
                 
                 for entry in feed.entries[:8]:
                     title = entry.title
-                    
+
                     # 创新关键词过滤
-                    innovation_indicators = ['new', 'novel', 'breakthrough', 'state-of-the-art', 
-                                           '前沿', '突破', '创新', '革命性']
-                    
+                    innovation_indicators = [
+                        "new",
+                        "novel",
+                        "breakthrough",
+                        "state-of-the-art",
+                        "前沿",
+                        "突破",
+                        "创新",
+                        "革命性",
+                    ]
+
                     if any(keyword in title.lower() for keyword in innovation_indicators):
-                        innovations.append({
-                            'title': title,
-                            'source': 'Medium',
-                            'type': '技术博客',
-                            'summary': entry.get('summary', '')[:200],
-                            'url': entry.link,
-                            'published': entry.get('published', datetime.now().isoformat()),
-                            'innovation_score': 0.6,
-                            'tags': ['技术博客', 'AI实践']
-                        })
+                        raw_summary = entry.get("summary", "") or ""
+                        summary = self.clean_html(raw_summary)
+                        summary = (summary[:200] + "...") if len(summary) > 200 else summary
+
+                        innovations.append(
+                            {
+                                "title": title,
+                                "source": "Medium",
+                                "type": "技术博客",
+                                "summary": summary,
+                                "url": entry.link,
+                                "published": entry.get(
+                                    "published", datetime.now().isoformat()
+                                ),
+                                "innovation_score": 0.6,
+                                "tags": ["技术博客", "AI实践"],
+                            }
+                        )
         except Exception as e:
             print(f"Medium获取失败: {e}")
         
