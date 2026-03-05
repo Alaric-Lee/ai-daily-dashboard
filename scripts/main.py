@@ -1,250 +1,386 @@
+"""
+主程序 - 整合日报、周报、月报生成功能
+"""
 import os
-import datetime
-from jinja2 import Template
+import sys
+import argparse
+from datetime import datetime, timedelta
+
+# 添加脚本目录到路径
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from data_storage import DataStorage
+from scoring import NewsScorer
+from weekly_report import WeeklyReportGenerator
+from monthly_report import MonthlyReportGenerator
 
 # 导入数据获取模块
-import model_ranking
-import model_news
-import open_source_apps
-import successful_cases
+try:
+    import model_ranking
+    import model_news
+    import open_source_apps
+    import successful_cases
+except ImportError as e:
+    print(f"警告: 部分数据获取模块导入失败: {e}")
+    # 使用模拟数据
+    model_ranking = None
+    model_news = None
+    open_source_apps = None
+    successful_cases = None
+
+
+def get_mock_data():
+    """获取模拟数据（用于测试）"""
+    return {
+        'model_ranking': {
+            'huggingface': 'https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard',
+            'lmsys': 'https://arena.ai/leaderboard',
+            'opencompass': 'https://rank.opencompass.org.cn/home'
+        },
+        'model_news': [
+            {
+                'title': 'OpenAI发布GPT-5：全新多模态能力震撼业界',
+                'description': 'OpenAI今日发布GPT-5，具备更强的多模态理解能力和更长的上下文窗口...',
+                'source': 'OpenAI',
+                'link': 'https://openai.com',
+                'date': datetime.now().strftime('%Y-%m-%d')
+            },
+            {
+                'title': 'Anthropic推出Claude 4：超越GPT-4的性能',
+                'description': 'Anthropic发布Claude 4，在多项基准测试中超越GPT-4...',
+                'source': 'Anthropic',
+                'link': 'https://anthropic.com',
+                'date': datetime.now().strftime('%Y-%m-%d')
+            }
+        ],
+        'open_source_apps': [
+            {
+                'name': 'LangChain',
+                'description': '构建LLM应用的框架',
+                'stars': 150000,
+                'language': 'Python',
+                'date': datetime.now().strftime('%Y-%m-%d')
+            }
+        ],
+        'successful_cases': [
+            {
+                'title': '突破性多模态AI模型发布',
+                'summary': '新模型在多项任务上超越GPT-4V',
+                'source': 'arXiv',
+                'final_score': 0.95,
+                'date': datetime.now().strftime('%Y-%m-%d')
+            }
+        ]
+    }
+
+
+def fetch_daily_data():
+    """获取每日数据"""
+    print("开始获取每日数据...")
+    
+    data = {}
+    
+    # 获取大模型评测榜单
+    print("获取大模型综合评测榜单...")
+    if model_ranking:
+        try:
+            data['model_ranking'] = model_ranking.get_model_ranking()
+        except Exception as e:
+            print(f"获取榜单失败: {e}")
+            data['model_ranking'] = {}
+    else:
+        data['model_ranking'] = {}
+    
+    # 获取最新大模型相关资讯
+    print("获取最新大模型相关资讯...")
+    if model_news:
+        try:
+            news = model_news.get_model_news()
+            # 解析Markdown列表为结构化数据
+            data['model_news'] = parse_news_from_markdown(news)
+        except Exception as e:
+            print(f"获取资讯失败: {e}")
+            data['model_news'] = []
+    else:
+        data['model_news'] = []
+    
+    # 获取开源社区热门AI应用
+    print("获取开源社区热门AI应用...")
+    if open_source_apps:
+        try:
+            apps = open_source_apps.get_open_source_apps()
+            data['open_source_apps'] = parse_apps_from_markdown(apps)
+        except Exception as e:
+            print(f"获取开源项目失败: {e}")
+            data['open_source_apps'] = []
+    else:
+        data['open_source_apps'] = []
+    
+    # 获取AI创新
+    print("获取AI创新...")
+    if successful_cases:
+        try:
+            cases = successful_cases.get_successful_cases()
+            data['successful_cases'] = parse_cases_from_markdown(cases)
+        except Exception as e:
+            print(f"获取创新案例失败: {e}")
+            data['successful_cases'] = []
+    else:
+        data['successful_cases'] = []
+    
+    return data
+
+
+def parse_news_from_markdown(markdown_text):
+    """从Markdown文本解析新闻列表"""
+    news_list = []
+    if not markdown_text:
+        return news_list
+    
+    import re
+    # 匹配 Markdown 列表项
+    pattern = r'- \*\*(.+?)\*\*\s*\((.+?)\)\s*：(.+?)\s*\[查看原文\]\((.+?)\)'
+    matches = re.findall(pattern, markdown_text)
+    
+    for match in matches:
+        title, source, description, link = match
+        news_list.append({
+            'title': title.strip(),
+            'source': source.strip(),
+            'description': description.strip(),
+            'link': link.strip(),
+            'date': datetime.now().strftime('%Y-%m-%d')
+        })
+    
+    return news_list
+
+
+def parse_apps_from_markdown(markdown_text):
+    """从Markdown文本解析开源应用列表"""
+    apps_list = []
+    if not markdown_text:
+        return apps_list
+    
+    # 简化处理，返回文本内容
+    return [{'content': markdown_text, 'date': datetime.now().strftime('%Y-%m-%d')}]
+
+
+def parse_cases_from_markdown(markdown_text):
+    """从Markdown文本解析创新案例列表"""
+    cases_list = []
+    if not markdown_text:
+        return cases_list
+    
+    import re
+    # 匹配编号列表项
+    pattern = r'\d+\. \*\*(.+?)\*\*\s*- 领域：(.+?)\s*- 来源：(.+?)\s*- 创新指数：([\d.]+)\s*- 描述：(.+?)\s*- 链接：(.+?)(?=\n\n|\Z)'
+    matches = re.findall(pattern, markdown_text, re.DOTALL)
+    
+    for match in matches:
+        title, type_, source, score, summary, url = match
+        cases_list.append({
+            'title': title.strip(),
+            'type': type_.strip(),
+            'source': source.strip(),
+            'final_score': float(score.strip()),
+            'summary': summary.strip(),
+            'url': url.strip(),
+            'date': datetime.now().strftime('%Y-%m-%d')
+        })
+    
+    return cases_list
+
+
+def generate_daily_report(project_root: str, date_str: str = None, storage: DataStorage = None):
+    """
+    生成日报
+    
+    Args:
+        project_root: 项目根目录
+        date_str: 日期字符串，默认为今天
+        storage: 数据存储实例
+    
+    Returns:
+        生成的文件路径
+    """
+    if date_str is None:
+        date_str = datetime.now().strftime('%Y-%m-%d')
+    
+    if storage is None:
+        storage = DataStorage(project_root)
+    
+    print(f"\n{'='*50}")
+    print(f"开始生成日报: {date_str}")
+    print(f"{'='*50}\n")
+    
+    # 获取数据
+    data = fetch_daily_data()
+    
+    # 保存原始数据
+    storage.save_daily_data(date_str, data)
+    
+    # 生成Markdown报告（使用现有的vitepress_generator）
+    try:
+        from vitepress_generator import VitePressGenerator
+        vp_generator = VitePressGenerator(project_root)
+        vp_generator.generate()
+        print(f"\n日报生成完成: {date_str}")
+    except Exception as e:
+        print(f"生成Markdown报告失败: {e}")
+    
+    return date_str
+
+
+def generate_weekly_report(project_root: str, year: int = None, week: int = None, 
+                           check_exists: bool = True) -> str:
+    """
+    生成周报
+    
+    Args:
+        project_root: 项目根目录
+        year: 年份，默认为当前年
+        week: 周数，默认为当前周
+        check_exists: 是否检查已存在
+    
+    Returns:
+        生成的文件路径
+    """
+    generator = WeeklyReportGenerator(project_root)
+    
+    if year is None or week is None:
+        now = datetime.now()
+        year = now.year
+        week = now.isocalendar()[1]
+    
+    week_identifier = f'{year}-W{week:02d}'
+    
+    print(f"\n{'='*50}")
+    print(f"开始生成周报: {week_identifier}")
+    print(f"{'='*50}\n")
+    
+    if check_exists and generator.check_weekly_report_exists(week_identifier):
+        print(f"周报 {week_identifier} 已存在，跳过生成")
+        return None
+    
+    result = generator.generate_weekly_report(year, week)
+    
+    if result:
+        print(f"\n周报生成完成: {result}")
+    else:
+        print(f"\n周报生成失败或无数据")
+    
+    return result
+
+
+def generate_monthly_report(project_root: str, year: int = None, month: int = None,
+                            check_exists: bool = True) -> str:
+    """
+    生成月报
+    
+    Args:
+        project_root: 项目根目录
+        year: 年份，默认为当前年
+        month: 月份，默认为当前月
+        check_exists: 是否检查已存在
+    
+    Returns:
+        生成的文件路径
+    """
+    generator = MonthlyReportGenerator(project_root)
+    
+    if year is None or month is None:
+        now = datetime.now()
+        year = now.year
+        month = now.month
+    
+    month_identifier = f'{year}-{month:02d}'
+    
+    print(f"\n{'='*50}")
+    print(f"开始生成月报: {month_identifier}")
+    print(f"{'='*50}\n")
+    
+    if check_exists and generator.check_monthly_report_exists(month_identifier):
+        print(f"月报 {month_identifier} 已存在，跳过生成")
+        return None
+    
+    result = generator.generate_monthly_report(year, month)
+    
+    if result:
+        print(f"\n月报生成完成: {result}")
+    else:
+        print(f"\n月报生成失败或无数据")
+    
+    return result
+
+
+def run_daily_task(project_root: str):
+    """
+    运行每日任务
+    - 生成日报
+    - 检查并生成周报（如果不存在）
+    - 检查并生成月报（如果不存在）
+    """
+    print(f"\n{'#'*60}")
+    print(f"# 开始执行每日任务")
+    print(f"# 时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'#'*60}\n")
+    
+    # 1. 生成日报
+    storage = DataStorage(project_root)
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    generate_daily_report(project_root, date_str, storage)
+    
+    # 2. 检查并生成周报
+    print("\n检查周报...")
+    generate_weekly_report(project_root, check_exists=True)
+    
+    # 3. 检查并生成月报
+    print("\n检查月报...")
+    generate_monthly_report(project_root, check_exists=True)
+    
+    print(f"\n{'#'*60}")
+    print(f"# 每日任务执行完成")
+    print(f"{'#'*60}\n")
 
 
 def main():
-    # 获取当前日期
-    today = datetime.date.today()
-    date_str = today.strftime("%Y-%m-%d")
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+    """主函数"""
+    parser = argparse.ArgumentParser(description='AI Daily 数据生成工具')
+    parser.add_argument('--mode', choices=['daily', 'weekly', 'monthly', 'all'], 
+                        default='all',
+                        help='生成模式: daily=日报, weekly=周报, monthly=月报, all=全部')
+    parser.add_argument('--date', help='指定日期 (YYYY-MM-DD)，仅daily模式有效')
+    parser.add_argument('--week', type=int, help='指定周数，仅weekly模式有效')
+    parser.add_argument('--month', type=int, help='指定月份，仅monthly模式有效')
+    parser.add_argument('--year', type=int, help='指定年份')
+    parser.add_argument('--force', action='store_true', 
+                        help='强制生成，即使已存在')
+    
+    args = parser.parse_args()
+    
     # 获取项目根目录
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    # 获取数据
-    print("获取大模型综合评测榜单...")
-    ranking_data = model_ranking.get_model_ranking()
-
-    print("获取最新大模型相关资讯...")
-    news_data = model_news.get_model_news()
-
-    print("获取开源社区热门AI应用...")
-    open_source_data = open_source_apps.get_open_source_apps()
-
-    print("获取AI创新...")
-    successful_data = successful_cases.get_successful_cases()
-
-    # 渲染模板
-    template_path = os.path.join(project_root, "templates", "dashboard_template.md")
-    with open(template_path, "r", encoding="utf-8") as f:
-        template = Template(f.read())
-
-    rendered_content = template.render(
-        date=date_str,
-        timestamp=timestamp,
-        model_ranking=ranking_data,
-        model_news=news_data,
-        open_source_apps=open_source_data,
-        successful_cases=successful_data,
-    )
-
-    # 目录设置：最新资讯与历史记录分开
-    docs_dir = os.path.join(project_root, "docs")
-    latest_dir = os.path.join(docs_dir, "latest")
-    history_dir = os.path.join(docs_dir, "history")
-
-    for d in (docs_dir, latest_dir, history_dir):
-        if not os.path.exists(d):
-            os.makedirs(d)
-
-    # 1. 最新资讯：始终覆盖 docs/latest/index.md
-    latest_file = os.path.join(latest_dir, "index.md")
-    with open(latest_file, "w", encoding="utf-8") as f:
-        f.write(rendered_content)
-    print(f"最新资讯已写入: {latest_file}")
-
-    # 2. 历史存档：按日期保存到 docs/history/YYYY-MM-DD.md
-    history_file = os.path.join(history_dir, f"{date_str}.md")
-    with open(history_file, "w", encoding="utf-8") as f:
-        f.write(rendered_content)
-    print(f"历史记录已写入: {history_file}")
-
-    # 3. 额外备份到 output 目录
-    output_dir = os.path.join(project_root, "output")
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    backup_file = os.path.join(output_dir, f"{date_str}.md")
-    with open(backup_file, "w", encoding="utf-8") as f:
-        f.write(rendered_content)
-
-    print(f"备份完成: {backup_file}")
-
-    # 4. 根据 history 目录更新历史索引页面 docs/history/index.md
-    update_archive(project_root)
-
-    print("\n所有任务完成!")
-
-def update_archive(project_root):
-    """根据 docs/history 目录生成历史索引页面 docs/history/index.md"""
-    history_dir = os.path.join(project_root, "docs", "history")
-
-    files = sorted(
-        [
-            f
-            for f in os.listdir(history_dir)
-            if f.endswith(".md") and f != "index.md"
-        ],
-        reverse=True,
-    )
-
-    archive_content = "# 📅 历史记录\n\n"
-    archive_content += "## 按日期查看\n\n"
-
-    current_month = None
-    for file in files:
-        date_str = file.replace(".md", "")
-        year_month = date_str[:7]  # YYYY-MM
-
-        if year_month != current_month:
-            if current_month:
-                archive_content += "\n"
-            current_month = year_month
-            archive_content += f"### {year_month}\n\n"
-
-        archive_content += f"- [{date_str}](./{date_str})\n"
-
-    index_path = os.path.join(history_dir, "index.md")
-    with open(index_path, "w", encoding="utf-8") as f:
-        f.write(archive_content)
-
-    print("历史记录索引 docs/history/index.md 更新完成")
+    
+    if args.mode == 'daily':
+        # 生成日报
+        generate_daily_report(project_root, args.date)
+    
+    elif args.mode == 'weekly':
+        # 生成周报
+        year = args.year or datetime.now().year
+        week = args.week or datetime.now().isocalendar()[1]
+        generate_weekly_report(project_root, year, week, check_exists=not args.force)
+    
+    elif args.mode == 'monthly':
+        # 生成月报
+        year = args.year or datetime.now().year
+        month = args.month or datetime.now().month
+        generate_monthly_report(project_root, year, month, check_exists=not args.force)
+    
+    else:  # all
+        # 运行每日任务（包含日报、周报检查、月报检查）
+        run_daily_task(project_root)
 
 
-def update_index(project_root: str, latest_date: str) -> None:
-    """根据最新日期更新 docs/index.md"""
-    docs_dir = os.path.join(project_root, "docs")
-    index_path = os.path.join(docs_dir, "index.md")
-
-    files = sorted(
-        [
-            f
-            for f in os.listdir(docs_dir)
-            if f.endswith(".md") and f not in ["index.md", "archive.md"]
-        ],
-        reverse=True,
-    )
-
-    recent_dates = [f.replace(".md", "") for f in files[:7]]
-    if recent_dates:
-        recent_list = "\n".join(
-            f"- [{date}](./{date})" for date in recent_dates
-        )
-    else:
-        recent_list = "- 暂无数据"
-
-    index_template = """---
-layout: home
-
-hero:
-  name: "AI每日资讯"
-  text: "每日更新的AI资讯仪表盘"
-  tagline: 追踪大模型发展，掌握AI前沿动态
-  actions:
-    - theme: brand
-      text: 查看最新
-      link: ./__LATEST_DATE__
-    - theme: alt
-      text: 历史记录
-      link: ./archive
-
-features:
-  - title: 大模型评测榜单
-    details: 实时获取LMSYS Arena等权威评测数据
-  - title: 最新AI资讯
-    details: 聚合机器之心、量子位等科技媒体动态
-  - title: 开源项目追踪
-    details: 发现GitHub上热门的AI应用和工具
-  - title: AI创新
-    details: 了解AI的最新创新方向
----
-
-## 最近更新
-
-__RECENT_LIST__
-
-<script setup>
-import { onMounted } from 'vue'
-
-onMounted(() => {
-  const features = document.querySelectorAll('.VPFeature')
-
-  const links = [
-    './__LATEST_DATE__#🏆-大模型综合评测榜单',
-    './__LATEST_DATE__#📰-最新大模型相关资讯',
-    './__LATEST_DATE__#🔥-开源社区热门ai应用',
-    './__LATEST_DATE__#💡-ai创新'
-  ]
-
-  features.forEach((feature, index) => {
-    if (links[index]) {
-      feature.style.cursor = 'pointer'
-      feature.addEventListener('click', () => {
-        window.location.href = links[index]
-      })
-
-      feature.addEventListener('mouseenter', () => {
-        feature.style.transform = 'translateY(-2px)'
-        feature.style.transition = 'transform 0.2s ease'
-      })
-
-      feature.addEventListener('mouseleave', () => {
-        feature.style.transform = 'translateY(0)'
-      })
-    }
-  })
-})
-</script>
-"""
-
-    index_content = index_template.replace("__LATEST_DATE__", latest_date)
-    index_content = index_content.replace("__RECENT_LIST__", recent_list)
-
-    with open(index_path, "w", encoding="utf-8") as f:
-        f.write(index_content)
-
-    print("首页 index.md 已更新为最新日期")
-
-
-def update_vitepress_config(project_root: str, latest_date: str) -> None:
-    """将 .vitepress/config.mts 中的“今日资讯/今日内容”链接指向最新日期"""
-    config_path = os.path.join(project_root, ".vitepress", "config.mts")
-    if not os.path.exists(config_path):
-        return
-
-    with open(config_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    # 查找当前配置中使用的日期（如 ./2026-03-04）
-    match = re.search(r"\./(\d{{4}}-\d{{2}}-\d{{2}})", content)
-    if not match:
-        # 如果没找到，就直接假设当前 latest_date 即为第一次配置日期，追加使用
-        old_date = None
-    else:
-        old_date = match.group(1)
-
-    if old_date == latest_date:
-        print("VitePress 配置已是最新日期，无需更新")
-        return
-
-    if old_date:
-        new_content = content.replace(f"./{old_date}", f"./{latest_date}")
-    else:
-        # 没有检测到旧日期时，不做复杂处理，只是提示一下
-        print("未在 VitePress 配置中检测到旧日期链接，暂不自动修改。")
-        return
-
-    with open(config_path, "w", encoding="utf-8") as f:
-        f.write(new_content)
-
-    print(".vitepress/config.mts 中的今日资讯链接已更新为最新日期")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

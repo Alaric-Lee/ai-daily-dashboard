@@ -21,7 +21,9 @@ export default defineConfig({
     nav: [
       { text: '🏠 首页', link: '/' },
       { text: '📰 今日资讯', link: '/latest/' },
-      { text: '📅 历史记录', link: '/history/' }
+      { text: '📅 历史记录', link: '/history/' },
+      { text: '📊 周报', link: '/weekly/' },
+      { text: '📈 月报', link: '/monthly/' }
     ],
 
     sidebar: {
@@ -31,7 +33,9 @@ export default defineConfig({
           items: [
             { text: '🏠 首页', link: '/' },
             { text: '📰 今日资讯', link: '/latest/' },
-            { text: '📅 历史记录', link: '/history/' }
+            { text: '📅 历史记录', link: '/history/' },
+            { text: '📊 周报汇总', link: '/weekly/' },
+            { text: '📈 月报汇总', link: '/monthly/' }
           ]
         },
         {
@@ -41,6 +45,22 @@ export default defineConfig({
             { text: '📰 最新资讯', link: '/latest/#📰-最新大模型相关资讯' },
             { text: '🔥 开源项目', link: '/latest/#🔥-开源社区热门ai应用' },
             { text: '💡 AI创新', link: '/latest/#💡-ai创新' }
+          ]
+        }
+      ],
+      '/weekly/': [
+        {
+          text: '📊 周报导航',
+          items: [
+            { text: '📋 周报汇总', link: '/weekly/' }
+          ]
+        }
+      ],
+      '/monthly/': [
+        {
+          text: '📈 月报导航',
+          items: [
+            { text: '📋 月报汇总', link: '/monthly/' }
           ]
         }
       ]

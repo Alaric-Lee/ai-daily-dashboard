@@ -8,10 +8,10 @@ hero:
   actions:
     - theme: brand
       text: 查看最新
-      link: ./latest/
+      link: ./2026-03-05
     - theme: alt
       text: 历史记录
-      link: ./history/
+      link: ./archive
 
 features:
   - title: 大模型评测榜单
@@ -26,22 +26,25 @@ features:
 
 ## 最近更新
 
-- [今日最新](./latest/)
-- [历史记录](./history/)
+- [2026-03-05](./2026-03-05)
+- [2026-03-04](./2026-03-04)
 
 <script setup>
 import { onMounted } from 'vue'
 
 onMounted(() => {
+  // 获取所有feature卡片
   const features = document.querySelectorAll('.VPFeature')
 
+  // 定义跳转链接（使用相对路径，锚点需要匹配标题的emoji前缀）
   const links = [
-    '/ai-daily-dashboard/latest/#🏆-大模型综合评测榜单',
-    '/ai-daily-dashboard/latest/#📰-最新大模型相关资讯',
-    '/ai-daily-dashboard/latest/#🔥-开源社区热门ai应用',
-    '/ai-daily-dashboard/latest/#💡-ai创新'
+    './2026-03-05#🏆-大模型综合评测榜单',
+    './2026-03-05#📰-最新大模型相关资讯',
+    './2026-03-05#🔥-开源社区热门ai应用',
+    './2026-03-05#💡-ai创新'
   ]
 
+  // 为每个卡片添加点击事件
   features.forEach((feature, index) => {
     if (links[index]) {
       feature.style.cursor = 'pointer'
@@ -49,6 +52,7 @@ onMounted(() => {
         window.location.href = links[index]
       })
 
+      // 添加悬停效果
       feature.addEventListener('mouseenter', () => {
         feature.style.transform = 'translateY(-2px)'
         feature.style.transition = 'transform 0.2s ease'

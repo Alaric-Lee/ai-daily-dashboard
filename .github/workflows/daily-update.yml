@@ -4,7 +4,27 @@ on:
   schedule:
     # 每天 16:12 UTC，对应北京时间 (UTC+8) 次日 00:12
     - cron: '12 16 * * *'
+    # 每周一 16:00 UTC，对应北京时间周二 00:00（额外检查周报）
+    - cron: '0 16 * * 1'
+    # 每月1号 16:00 UTC，对应北京时间每月2号 00:00（额外检查月报）
+    - cron: '0 16 1 * *'
   workflow_dispatch:  # 允许手动触发
+    inputs:
+      mode:
+        description: '运行模式'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - daily
+          - weekly
+          - monthly
+      force:
+        description: '强制生成（即使已存在）'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main  # 推送到main分支时也触发
@@ -38,7 +58,19 @@ jobs:
       - name: Run data collection script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python scripts/main.py
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # 手动触发时使用输入参数
+            MODE="${{ github.event.inputs.mode }}"
+            FORCE=""
+            if [ "${{ github.event.inputs.force }}" == "true" ]; then
+              FORCE="--force"
+            fi
+            python scripts/main.py --mode $MODE $FORCE
+          else
+            # 自动触发时运行全部任务
+            python scripts/main.py --mode all
+          fi
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
