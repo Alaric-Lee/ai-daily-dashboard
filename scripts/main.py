@@ -10,13 +10,22 @@ from datetime import datetime, timedelta
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 
-# 添加脚本目录到路径
+# 添加脚本目录到路径（确保在任何环境中都能找到模块）
 sys.path.insert(0, script_dir)
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from data_storage import DataStorage
-from scoring import NewsScorer
-from weekly_report import WeeklyReportGenerator
-from monthly_report import MonthlyReportGenerator
+# 尝试不同的导入方式
+try:
+    from data_storage import DataStorage
+    from scoring import NewsScorer
+    from weekly_report import WeeklyReportGenerator
+    from monthly_report import MonthlyReportGenerator
+except ImportError:
+    # 如果失败，使用相对导入
+    from .data_storage import DataStorage
+    from .scoring import NewsScorer
+    from .weekly_report import WeeklyReportGenerator
+    from .monthly_report import MonthlyReportGenerator
 
 # 导入数据获取模块
 try:
