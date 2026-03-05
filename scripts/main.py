@@ -161,8 +161,26 @@ def parse_apps_from_markdown(markdown_text):
     if not markdown_text:
         return apps_list
     
-    # 简化处理，返回文本内容
-    return [{'content': markdown_text, 'date': datetime.now().strftime('%Y-%m-%d')}]
+    import re
+    # 匹配开源项目列表项
+    pattern = r'- \*\*(.+?)\*\*\s*⭐(\d+)\s*\((.+?)\)：(.+?)\s*\[链接\]\((.+?)\)'
+    matches = re.findall(pattern, markdown_text)
+    
+    for match in matches:
+        full_name, stars, language, description, link = match
+        # 提取项目名称（去掉用户名部分）
+        name = full_name.split('/')[-1] if '/' in full_name else full_name
+        apps_list.append({
+            'name': name.strip(),
+            'full_name': full_name.strip(),
+            'stars': int(stars.strip()),
+            'language': language.strip(),
+            'description': description.strip(),
+            'link': link.strip(),
+            'date': datetime.now().strftime('%Y-%m-%d')
+        })
+    
+    return apps_list
 
 
 def parse_cases_from_markdown(markdown_text):
