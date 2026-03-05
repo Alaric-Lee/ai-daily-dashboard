@@ -58,19 +58,18 @@ jobs:
       - name: Run data collection script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYTHONPATH: ${{ github.workspace }}/scripts
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          cd scripts && if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             # 手动触发时使用输入参数
             MODE="${{ github.event.inputs.mode }}"
             FORCE=""
             if [ "${{ github.event.inputs.force }}" == "true" ]; then
               FORCE="--force"
             fi
-            python scripts/main.py --mode $MODE $FORCE
+            python main.py --mode $MODE $FORCE
           else
             # 自动触发时运行全部任务
-            python scripts/main.py --mode all
+            python main.py --mode all
           fi
       
       - name: Set up Node.js
