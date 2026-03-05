@@ -19,9 +19,9 @@ export default defineConfig({
     siteTitle: 'AI Daily',
 
     nav: [
-      { text: '🏠 首页', link: './' },
-      { text: '📰 今日资讯', link: './2026-03-04' },
-      { text: '📅 历史记录', link: './archive' }
+      { text: '🏠 首页', link: '/' },
+      { text: '📰 今日资讯', link: '/latest/' },
+      { text: '📅 历史记录', link: '/history/' }
     ],
 
     sidebar: {
@@ -29,18 +29,18 @@ export default defineConfig({
         {
           text: '📊 导航',
           items: [
-            { text: '🏠 首页', link: './' },
-            { text: '📰 今日资讯', link: './2026-03-04' },
-            { text: '📅 历史记录', link: './archive' }
+            { text: '🏠 首页', link: '/' },
+            { text: '📰 今日资讯', link: '/latest/' },
+            { text: '📅 历史记录', link: '/history/' }
           ]
         },
         {
           text: '📋 今日内容',
           items: [
-            { text: '🏆 大模型评测榜单', link: './2026-03-04#🏆-大模型综合评测榜单' },
-            { text: '📰 最新资讯', link: './2026-03-04#📰-最新大模型相关资讯' },
-            { text: '🔥 开源项目', link: './2026-03-04#🔥-开源社区热门ai应用' },
-            { text: '💡 AI创新', link: './2026-03-04#💡-ai创新' }
+            { text: '🏆 大模型评测榜单', link: '/latest/#🏆-大模型综合评测榜单' },
+            { text: '📰 最新资讯', link: '/latest/#📰-最新大模型相关资讯' },
+            { text: '🔥 开源项目', link: '/latest/#🔥-开源社区热门ai应用' },
+            { text: '💡 AI创新', link: '/latest/#💡-ai创新' }
           ]
         }
       ]
