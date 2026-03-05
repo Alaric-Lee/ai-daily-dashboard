@@ -341,6 +341,9 @@ description: {{ year }}年{{ month }}月的AI资讯精选
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
         
+        # 更新索引
+        self.update_monthly_index()
+        
         print(f"月报生成完成: {filepath}")
         return filepath
     
@@ -375,6 +378,65 @@ description: {{ year }}年{{ month }}月的AI资讯精选
             return None
         
         return self.generate_monthly_report(year, month)
+    
+    def update_monthly_index(self) -> None:
+        """
+        更新月报索引页面 docs/monthly/index.md
+        """
+        # 获取所有月报文件
+        files = sorted(
+            [
+                f
+                for f in os.listdir(self.monthly_dir)
+                if f.endswith('.md') and f != 'index.md'
+            ],
+            reverse=True,
+        )
+        
+        # 按年份分组
+        yearly_reports = {}
+        for file in files:
+            if '-' in file:
+                try:
+                    year = file.split('-')[0]
+                    if year not in yearly_reports:
+                        yearly_reports[year] = []
+                    yearly_reports[year].append(file)
+                except:
+                    pass
+        
+        # 生成索引内容
+        index_content = """---
+title: 月报汇总
+---
+
+# 📈 月报汇总
+
+"""
+        
+        # 按年份倒序添加
+        for year in sorted(yearly_reports.keys(), reverse=True):
+            index_content += f"## {year}年\n\n"
+            
+            # 按月倒序添加
+            for file in sorted(yearly_reports[year], reverse=True):
+                month_identifier = file.replace('.md', '')
+                # 提取月份
+                month = month_identifier.split('-')[1]
+                index_content += f"### {month}月\n"
+                index_content += f"- [{month_identifier}](./{month_identifier})\n"
+            
+            index_content += "\n"
+        
+        index_content += "---\n\n"
+        index_content += "**📌 提示**：月报每月自动生成，包含一个月的AI资讯精选。"
+        
+        # 保存索引文件
+        index_path = os.path.join(self.monthly_dir, 'index.md')
+        with open(index_path, 'w', encoding='utf-8') as f:
+            f.write(index_content)
+        
+        print(f"月报索引更新完成: {index_path}")
 
 
 if __name__ == '__main__':

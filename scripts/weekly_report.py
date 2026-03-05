@@ -308,6 +308,9 @@ description: {{ week_start }} 至 {{ week_end }} 的AI资讯精选
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
         
+        # 更新索引
+        self.update_weekly_index()
+        
         print(f"周报生成完成: {filepath}")
         return filepath
     
@@ -342,6 +345,62 @@ description: {{ week_start }} 至 {{ week_end }} 的AI资讯精选
             return None
         
         return self.generate_weekly_report(year, week)
+    
+    def update_weekly_index(self) -> None:
+        """
+        更新周报索引页面 docs/weekly/index.md
+        """
+        # 获取所有周报文件
+        files = sorted(
+            [
+                f
+                for f in os.listdir(self.weekly_dir)
+                if f.endswith('.md') and f != 'index.md'
+            ],
+            reverse=True,
+        )
+        
+        # 按年份分组
+        yearly_reports = {}
+        for file in files:
+            if '-' in file and 'W' in file:
+                try:
+                    year = file.split('-W')[0]
+                    if year not in yearly_reports:
+                        yearly_reports[year] = []
+                    yearly_reports[year].append(file)
+                except:
+                    pass
+        
+        # 生成索引内容
+        index_content = """---
+title: 周报汇总
+---
+
+# 📊 周报汇总
+
+"""
+        
+        # 按年份倒序添加
+        for year in sorted(yearly_reports.keys(), reverse=True):
+            index_content += f"## {year}年\n\n"
+            
+            # 按周倒序添加
+            for file in sorted(yearly_reports[year], reverse=True):
+                week_identifier = file.replace('.md', '')
+                index_content += f"- [{week_identifier}](./{week_identifier})\n"
+            
+            index_content += "\n"
+        
+        index_content += "---\n\n"
+        index_content += "**📌 提示**：周报每周自动生成，包含一周的AI资讯精选。"
+        
+        # 保存索引文件
+        index_path = os.path.join(self.weekly_dir, 'index.md')
+        with open(index_path, 'w', encoding='utf-8') as f:
+            f.write(index_content)
+        
+        print(f"周报索引更新完成: {index_path}")
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import os
 import sys
 import argparse
 from datetime import datetime, timedelta
+from jinja2 import Template
 
 # 添加脚本目录到路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -209,6 +210,226 @@ def parse_cases_from_markdown(markdown_text):
     return cases_list
 
 
+def render_daily_report(data: dict, date_str: str) -> str:
+    """渲染日报内容为Markdown格式"""
+    template_str = """---
+title: AI每日资讯 - {{ date_str }}
+---
+
+> 📅 **更新日期**：{{ date_str }}  
+> ⏰ **生成时间**：{{ generated_at }}
+
+## 🏆 大模型综合评测榜单
+
+以下是当前主流大模型的权威评测榜单，点击链接查看最新排名：
+
+### 1. Hugging Face Open LLM Leaderboard
+
+开源大模型综合评测榜单，涵盖多项基准测试：
+
+- **链接**：[https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard)
+- **特点**：包含MMLU、HumanEval、GSM8K等多项基准测试，支持多种模型对比
+
+### 2. LMSYS Chatbot Arena
+
+基于用户投票的大模型对战评测榜单：
+
+- **链接**：[https://arena.ai/leaderboard](https://arena.ai/leaderboard)
+- **特点**：通过真实用户对战投票，反映模型在实际使用中的表现
+
+### 3. OpenCompass 司南评测榜单
+
+上海人工智能实验室推出的大模型评测体系：
+
+- **链接**：[https://rank.opencompass.org.cn/home](https://rank.opencompass.org.cn/home)
+- **特点**：中国自主研发的评测体系，覆盖多语言和多任务场景
+
+> 📅 数据更新时间：{{ date_str }}
+> 💡 提示：点击上述链接查看最新的大模型评测排名。
+
+
+---
+
+## 📰 最新大模型相关资讯
+
+{% for news in model_news %}
+- **{{ news.title }}** ({{ news.source }})： {{ news.description }} [查看原文]({{ news.link }})
+{% endfor %}
+
+---
+
+## 🔥 开源社区热门AI应用
+
+{% for app in open_source_apps %}
+- **{{ app.full_name }}** ⭐{{ app.stars }} ({{ app.language }})：{{ app.description }} [链接]({{ app.link }})
+{% endfor %}
+
+---
+
+## 💡 AI创新
+
+{% for case in successful_cases %}
+{{ loop.index }}. **{{ case.title }}**
+   - 领域：{{ case.type }}
+   - 来源：{{ case.source }}
+   - 创新指数：{{ "%.2f"|format(case.final_score) }}
+   - 描述：{{ case.summary }}
+   - 链接：{{ case.url }}
+
+{% endfor %}
+
+---
+
+**📌 提示**：本页面每日自动更新，数据来源于多个权威平台。  
+
+**🔗 相关链接**：
+- [Hugging Face](https://huggingface.co)
+- [LMSYS Arena](https://lmarena.ai)
+- [OpenCompass](https://opencompass.org.cn)
+"""
+    
+    template = Template(template_str)
+    return template.render(
+        date_str=date_str,
+        generated_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        **data
+    )
+
+
+def update_archive(project_root):
+    """根据 docs/history 目录生成历史索引页面 docs/history/index.md"""
+    history_dir = os.path.join(project_root, 'docs', 'history')
+    
+    files = sorted(
+        [
+            f
+            for f in os.listdir(history_dir)
+            if f.endswith('.md') and f != 'index.md'
+        ],
+        reverse=True,
+    )
+    
+    archive_content = '# 📅 历史记录\n\n'
+    archive_content += '## 按日期查看\n\n'
+    
+    current_month = None
+    for file in files:
+        date_str = file.replace('.md', '')
+        year_month = date_str[:7]  # YYYY-MM
+        
+        if year_month != current_month:
+            if current_month:
+                archive_content += '\n'
+            current_month = year_month
+            archive_content += f'### {year_month}\n\n'
+        
+        archive_content += f'- [{date_str}](./{date_str})\n'
+    
+    index_path = os.path.join(history_dir, 'index.md')
+    with open(index_path, 'w', encoding='utf-8') as f:
+        f.write(archive_content)
+    
+    print('历史记录索引 docs/history/index.md 更新完成')
+
+
+def update_index(project_root: str, latest_date: str) -> None:
+    """根据最新日期更新 docs/index.md"""
+    docs_dir = os.path.join(project_root, 'docs')
+    index_path = os.path.join(docs_dir, 'index.md')
+    
+    # 读取历史目录获取所有日期
+    history_dir = os.path.join(docs_dir, 'history')
+    files = sorted(
+        [
+            f
+            for f in os.listdir(history_dir)
+            if f.endswith('.md') and f != 'index.md'
+        ],
+        reverse=True,
+    )
+    
+    # 生成首页内容
+    index_content = """---
+layout: home
+
+hero:
+  name: "AI每日资讯"
+  text: "每日更新的AI资讯仪表盘"
+  tagline: 追踪大模型发展，掌握AI前沿动态
+  actions:
+    - theme: brand
+      text: 查看最新
+      link: ./latest
+    - theme: alt
+      text: 历史记录
+      link: ./history
+
+features:
+  - title: 大模型评测榜单
+    details: 实时获取LMSYS Arena等权威评测数据
+  - title: 最新AI资讯
+    details: 聚合机器之心、量子位等科技媒体动态
+  - title: 开源项目追踪
+    details: 发现GitHub上热门的AI应用和工具
+  - title: AI创新
+    details: 了解AI的最新创新方向
+---
+
+## 最近更新
+
+"""
+    
+    # 添加最近7天的链接
+    for file in files[:7]:
+        date_str = file.replace('.md', '')
+        index_content += f'- [{date_str}](./history/{date_str})\n'
+    
+    # 添加脚本，使feature卡片可点击
+    index_content += """
+<script setup>
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  // 获取所有feature卡片
+  const features = document.querySelectorAll('.VPFeature')
+
+  // 定义跳转链接（使用相对路径，锚点需要匹配标题的emoji前缀）
+  const links = [
+    './latest#🏆-大模型综合评测榜单',
+    './latest#📰-最新大模型相关资讯',
+    './latest#🔥-开源社区热门ai应用',
+    './latest#💡-ai创新'
+  ]
+
+  // 为每个卡片添加点击事件
+  features.forEach((feature, index) => {
+    if (links[index]) {
+      feature.style.cursor = 'pointer'
+      feature.addEventListener('click', () => {
+        window.location.href = links[index]
+      })
+
+      // 添加悬停效果
+      feature.addEventListener('mouseenter', () => {
+        feature.style.transform = 'translateY(-2px)'
+        feature.style.transition = 'transform 0.2s ease'
+      })
+
+      feature.addEventListener('mouseleave', () => {
+        feature.style.transform = 'translateY(0)'
+      })
+    }
+  })
+})
+</script>
+"""
+    
+    with open(index_path, 'w', encoding='utf-8') as f:
+        f.write(index_content)
+    
+    print(f'首页 docs/index.md 更新完成')
+
+
 def generate_daily_report(project_root: str, date_str: str = None, storage: DataStorage = None):
     """
     生成日报
@@ -237,14 +458,48 @@ def generate_daily_report(project_root: str, date_str: str = None, storage: Data
     # 保存原始数据
     storage.save_daily_data(date_str, data)
     
-    # 生成Markdown报告（使用现有的vitepress_generator）
-    try:
-        from vitepress_generator import VitePressGenerator
-        vp_generator = VitePressGenerator(project_root)
-        vp_generator.generate()
-        print(f"\n日报生成完成: {date_str}")
-    except Exception as e:
-        print(f"生成Markdown报告失败: {e}")
+    # 渲染日报内容为Markdown格式
+    rendered_content = render_daily_report(data, date_str)
+    
+    # 目录设置：最新资讯与历史记录分开
+    docs_dir = os.path.join(project_root, 'docs')
+    latest_dir = os.path.join(docs_dir, 'latest')
+    history_dir = os.path.join(docs_dir, 'history')
+    
+    for d in (docs_dir, latest_dir, history_dir):
+        if not os.path.exists(d):
+            os.makedirs(d)
+    
+    # 1. 最新资讯：始终覆盖 docs/latest/index.md
+    latest_file = os.path.join(latest_dir, 'index.md')
+    with open(latest_file, 'w', encoding='utf-8') as f:
+        f.write(rendered_content)
+    print(f"最新资讯已写入: {latest_file}")
+    
+    # 2. 历史存档：按日期保存到 docs/history/YYYY-MM-DD.md
+    history_file = os.path.join(history_dir, f'{date_str}.md')
+    with open(history_file, 'w', encoding='utf-8') as f:
+        f.write(rendered_content)
+    print(f"历史记录已写入: {history_file}")
+    
+    # 3. 额外备份到 output 目录
+    output_dir = os.path.join(project_root, 'output')
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    backup_file = os.path.join(output_dir, f'{date_str}.md')
+    with open(backup_file, 'w', encoding='utf-8') as f:
+        f.write(rendered_content)
+    
+    print(f"备份完成: {backup_file}")
+    
+    # 4. 根据 history 目录更新历史索引页面 docs/history/index.md
+    update_archive(project_root)
+    
+    # 5. 更新首页 docs/index.md
+    update_index(project_root, date_str)
+    
+    print(f"\n日报生成完成: {date_str}")
     
     return date_str
 
